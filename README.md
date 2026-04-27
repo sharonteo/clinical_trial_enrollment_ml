@@ -3,6 +3,8 @@
 
 A Streamlit demo that forecasts clinical trial enrollment and identifies high-risk or zero-enrollment sites.
 
+https://trialenrollment.streamlit.app/
+
 ## Why this version is focused
 
 The project uses a lean, explainable feature set instead of a large number of variables. This keeps the demo aligned with clinical operations decision-making:
