@@ -1,3 +1,4 @@
+
 # Clinical Trial Enrollment Dashboard
 
 A Streamlit demo that forecasts clinical trial enrollment and identifies high-risk or zero-enrollment sites.
@@ -29,3 +30,6 @@ streamlit run app.py
 ## Interview talking point
 
 “I intentionally kept the feature set focused and operationally meaningful. The goal is not just to build a model, but to help study teams identify zero-enrollment and high-risk sites early enough to intervene.”
+=======
+# clinical_trial_enrollment_ml
+
