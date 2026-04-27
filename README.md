@@ -1,5 +1,5 @@
 
-# Clinical Trial Enrollment Dashboard
+# Clinical Trial Enrollment Forecasting Dashboard
 
 A Streamlit demo that forecasts clinical trial enrollment and identifies high-risk or zero-enrollment sites.
 
