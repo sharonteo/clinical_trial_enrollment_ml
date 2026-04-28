@@ -1,33 +1,22 @@
+# Clinical Trial Enrollment Forecasting Dashboard (ML + NLP + LLM)
 
-# Clinical Trial Enrollment Forecasting Dashboard
+## Overview
+This project predicts clinical trial enrollment performance and identifies high-risk sites using machine learning.
 
-A Streamlit demo that forecasts clinical trial enrollment and identifies high-risk or zero-enrollment sites.
+## Key Features
+- 📊 Enrollment forecasting (Random Forest)
+- ⚠️ Site-level risk modeling (AUC-based)
+- 🧠 NLP barrier theme extraction from site notes
+- 🤖 LLM-style executive summaries for decision support
 
-https://trialenrollment.streamlit.app/
+## Tech Stack
+- Python
+- Streamlit
+- Scikit-learn
+- Plotly
+- NLP (lightweight text analytics)
 
-## Why this version is focused
-
-The project uses a lean, explainable feature set instead of a large number of variables. This keeps the demo aligned with clinical operations decision-making:
-
-- Which sites are underperforming?
-- Which sites have zero enrollment?
-- What risk drivers may explain the issue?
-- Where should the study team intervene?
-
-## Files
-
-- `app.py` — Streamlit dashboard
-- `data_generation.py` — Synthetic trial/site data generation
-- `models.py` — Site risk model and enrollment forecast model
-- `data_dictionary.md` — Variable definitions
-- `requirements.txt` — Python dependencies
-
-## Run locally
-
-```bash
-pip install -r requirements.txt
-streamlit run app.py
-```
-
-
-
+## Business Impact
+- Identify zero-enrollment sites early
+- Improve patient recruitment strategy
+- Enable data-driven clinical operations decisions
