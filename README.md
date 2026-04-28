@@ -3,7 +3,7 @@
 An end-to-end machine learning + NLP + LLM-style decision intelligence platform designed to predict clinical trial enrollment risk and enable proactive intervention.
 
 ## 🔗 Live Demo
-(https://trialenrollment.streamlit.app/)
+https://trialenrollment.streamlit.app/
 
 ---
 
