@@ -2,6 +2,9 @@
 
 An end-to-end machine learning + NLP + LLM-style decision intelligence platform designed to predict clinical trial enrollment risk and enable proactive intervention.
 
+## 🔗 Live Demo
+(https://trialenrollment.streamlit.app/)
+
 ---
 
 ## 🚀 Problem
@@ -48,11 +51,6 @@ This dashboard provides early signal detection and decision support using:
 - Improves site selection and allocation strategy
 - Reduces risk of missed enrollment targets
 - Bridges gap between data science and clinical operations
-
----
-
-## 🔗 Live Demo
-[Insert your Streamlit URL here]
 
 ---
 
