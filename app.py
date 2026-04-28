@@ -2,7 +2,13 @@ import streamlit as st
 import plotly.express as px
 
 from data_generation import generate_synthetic_data
-from models import build_site_risk_model, forecast_trial_enrollment
+from models import (
+    build_site_risk_model,
+    forecast_trial_enrollment,
+    generate_site_barrier_notes,
+    analyze_site_barrier_themes,
+    generate_llm_operational_summary,
+)
 
 
 st.set_page_config(
@@ -26,6 +32,9 @@ forecast_months = 6
 site_df, monthly_df = generate_synthetic_data()
 model, scored_sites, auc = build_site_risk_model(site_df)
 forecast_df = forecast_trial_enrollment(monthly_df, forecast_months=forecast_months)
+site_notes_df = generate_site_barrier_notes(scored_sites)
+barrier_themes_df = analyze_site_barrier_themes(site_notes_df)
+llm_summary = generate_llm_operational_summary(scored_sites, forecast_df, target_enrollment)
 
 # Metrics
 actual_enrolled = int(monthly_df["monthly_enrollment"].sum())
@@ -60,11 +69,12 @@ if zero_enrollment_sites > 0:
 
 st.divider()
 
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "Enrollment Forecast",
     "Site Risk Model",
     "Segment Review",
-    "Operational Summary"
+    "Operational Summary",
+    "NLP / LLM Insights"
 ])
 
 # =========================
@@ -325,6 +335,51 @@ with tab4:
                 "data_dictionary.md",
                 "text/markdown",
             )
+
+# =========================
+# TAB 5: NLP / LLM INSIGHTS
+# =========================
+with tab5:
+    st.subheader("NLP / LLM Insights")
+
+    st.markdown("""
+This section adds a lightweight AI layer on top of the forecasting and site-risk models.
+The NLP component extracts operational themes from synthetic site-monitoring notes, and the
+LLM-style component converts model outputs into a concise executive readout.
+""")
+
+    st.markdown("### LLM-Style Executive Summary")
+    st.info(llm_summary)
+
+    st.markdown("### NLP Theme Extraction from Site Notes")
+    st.write(
+        "The app creates synthetic monitoring notes from structured site drivers, then tags common "
+        "barrier themes such as low prescreen volume, startup delay, and high screen failure rate."
+    )
+
+    st.dataframe(barrier_themes_df, use_container_width=True)
+
+    fig_themes = px.bar(
+        barrier_themes_df,
+        x="theme",
+        y="site_count",
+        title="Detected Site Barrier Themes"
+    )
+    st.plotly_chart(fig_themes, use_container_width=True)
+
+    st.markdown("### Example Site Monitoring Notes")
+    st.dataframe(
+        site_notes_df.sort_values("risk_score", ascending=False).head(10),
+        use_container_width=True,
+    )
+
+    with st.expander("How this could become a real LLM workflow"):
+        st.markdown("""
+In production, this layer could ingest CRA notes, site call notes, recruitment updates,
+or de-identified patient-screening comments. An LLM could summarize recurring barriers,
+rank intervention priorities, generate site follow-up questions, and draft operational
+recommendations for clinical trial managers.
+""")
 
 st.divider()
 

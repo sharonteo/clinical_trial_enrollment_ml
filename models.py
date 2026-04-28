@@ -117,3 +117,104 @@ def forecast_trial_enrollment(monthly_df, forecast_months=6):
     )
 
     return forecast_df
+
+
+def generate_site_barrier_notes(scored_sites):
+    """
+    Create synthetic site-monitoring notes from structured site risk drivers.
+
+    This gives the dashboard a lightweight NLP use case without requiring
+    external clinical notes or protected health information. In a real setting,
+    these notes could come from CRA comments, site monitoring logs, call notes,
+    or patient recruitment updates.
+    """
+    notes = []
+
+    prescreen_median = scored_sites["prescreen_volume"].median()
+    failure_median = scored_sites["screen_failure_rate"].median()
+    delay_median = scored_sites["startup_delay_weeks"].median()
+    enrollment_median = scored_sites["historical_enrollment_rate"].median()
+    prior_trial_median = scored_sites["prior_trial_count"].median()
+
+    for _, row in scored_sites.iterrows():
+        barriers = []
+
+        if row["prescreen_volume"] < prescreen_median:
+            barriers.append("low patient prescreen volume")
+        if row["screen_failure_rate"] > failure_median:
+            barriers.append("high screen failure rate")
+        if row["startup_delay_weeks"] > delay_median:
+            barriers.append("startup delay")
+        if row["historical_enrollment_rate"] < enrollment_median:
+            barriers.append("weak historical enrollment performance")
+        if row["prior_trial_count"] < prior_trial_median:
+            barriers.append("limited prior trial experience")
+
+        if not barriers:
+            barriers.append("stable recruitment performance")
+
+        note = (
+            f"Site {row['site_id']} in {row['region']} shows {', '.join(barriers)}. "
+            f"Risk band is {row['risk_band']} with a risk score of {row['risk_score']:.2f}."
+        )
+        notes.append(note)
+
+    notes_df = scored_sites[["site_id", "region", "risk_score", "risk_band"]].copy()
+    notes_df["site_monitoring_note"] = notes
+    return notes_df
+
+
+def analyze_site_barrier_themes(notes_df):
+    """
+    Simple NLP-style keyword theme extraction for site barrier notes.
+
+    This intentionally uses transparent keyword matching instead of a heavy NLP
+    package so the app stays easy to run in Streamlit.
+    """
+    theme_keywords = {
+        "Low prescreen volume": ["low patient prescreen volume"],
+        "High screen failure": ["high screen failure rate"],
+        "Startup delay": ["startup delay"],
+        "Weak historical enrollment": ["weak historical enrollment performance"],
+        "Limited prior trial experience": ["limited prior trial experience"],
+        "Stable performance": ["stable recruitment performance"],
+    }
+
+    rows = []
+    for theme, keywords in theme_keywords.items():
+        mask = notes_df["site_monitoring_note"].str.lower().apply(lambda text: any(keyword in text for keyword in keywords))
+        matching = notes_df[mask]
+        rows.append({
+            "theme": theme,
+            "site_count": int(mask.sum()),
+            "avg_risk_score": float(matching["risk_score"].mean()) if not matching.empty else 0.0,
+            "example_sites": ", ".join(matching["site_id"].head(3).astype(str).tolist()),
+        })
+
+    return pd.DataFrame(rows).sort_values(["site_count", "avg_risk_score"], ascending=[False, False])
+
+
+def generate_llm_operational_summary(scored_sites, forecast_df, target_enrollment):
+    """
+    Generate an LLM-style executive narrative from model outputs.
+
+    This is a deterministic stand-in for an LLM call. It demonstrates how an LLM
+    layer could convert ML results into an operational summary for clinical teams.
+    """
+    actual_enrollment = int(forecast_df["cumulative_enrollment"].dropna().max())
+    projected_enrollment = int(forecast_df["forecast_cumulative_enrollment"].max())
+    gap = target_enrollment - projected_enrollment
+    high_risk_count = int((scored_sites["risk_score"] > 0.66).sum())
+    zero_count = int((scored_sites["zero_enroller"] == 1).sum())
+    top_site = scored_sites.sort_values("risk_score", ascending=False).iloc[0]
+    action = "increase recruitment support, review screening criteria, and consider adding sites in stronger regions" if gap > 0 else "continue monitoring high-risk sites while protecting the current enrollment trajectory"
+
+    return f"""
+**AI-generated operational readout**
+
+Enrollment currently stands at **{actual_enrollment:,}** patients and is projected to reach **{projected_enrollment:,}** against a target of **{target_enrollment:,}**. The forecasted gap is **{max(gap, 0):,}** patients.
+
+The model identified **{high_risk_count}** high-risk sites and **{zero_count}** zero-enrollment sites. The highest-priority site is **{top_site['site_id']}** in **{top_site['region']}**, with a risk score of **{top_site['risk_score']:.2f}**.
+
+Recommended next step: **{action}**.
+""".strip()
